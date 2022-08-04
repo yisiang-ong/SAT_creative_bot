@@ -82,7 +82,7 @@ class ModelDecisionMaker:
                 "0: none",
                 "1: cultivate an appreciation of beauty",
                 "2: try to resist too much sexual activity",
-                "3: wake up in the morning with a specific goal",
+                "3: physical exercises",
             ],
             "calm": [
                 "0: none",
@@ -130,7 +130,7 @@ class ModelDecisionMaker:
                 "0: none",
                 "1: SAT protocol 18",
                 "2: calling instead of texting",
-                "3: hang out with close friend",
+                "3: participate social events",
             ],
             "introversion": [
                 "0: none",
@@ -742,12 +742,12 @@ class ModelDecisionMaker:
                 "choices": {
                     "1: cultivate an appreciation of beauty": "try_dichotomy_exercise",
                     "2: try to resist too much sexual activity": "try_dichotomy_exercise",
-                    "3: wake up in the morning with a specific goal": "try_dichotomy_exercise"
+                    "3: physical exercises": "try_dichotomy_exercise"
                 },
                 "protocols": {
                     "1: cultivate an appreciation of beauty": [],
                     "2: try to resist too much sexual activity": [],
-                    "3: wake up in the morning with a specific goal": []
+                    "3: physical exercises": []
                 },
             },
 
@@ -862,12 +862,12 @@ class ModelDecisionMaker:
                 "choices": {
                     "1: SAT protocol 18": "try_sat_protocol_dichotomy",
                     "2: calling instead of texting": "try_dichotomy_exercise",
-                    "3: hang out with close friend": "try_dichotomy_exercise"
+                    "3: participate social events": "try_dichotomy_exercise"
                 },
                 "protocols": {
                     "1: SAT protocol 18": [self.PROTOCOL_TITLES[18]],
                     "2: calling instead of texting": [],
-                    "3: hang out with close friend": []
+                    "3: participate social events": []
                 },
             },
 
@@ -1417,6 +1417,8 @@ class ModelDecisionMaker:
             return [temp_list[0], temp_list[1]]
         elif len(temp_list) == 3:
             return [temp_list[0], temp_list[1], temp_list[2]]
+        elif len(temp_list) == 4:
+            return [temp_list[0], temp_list[1], temp_list[2], temp_list[3]]
         else:
             return [sentence]
 
@@ -2632,6 +2634,11 @@ class ModelDecisionMaker:
                 else:
                     next_choice = current_choice_for_question["happy"]
                     protocols_chosen = current_protocols["happy"]
+
+            elif current_choice == "opening_prompt":
+                next_choice = current_choice_for_question["open_text"]
+                protocols_chosen = current_protocols["open_text"]
+
             else:
                 next_choice = current_choice_for_question[user_choice]
                 protocols_chosen = current_protocols[user_choice]

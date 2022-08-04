@@ -25,35 +25,35 @@ nltk.download("stopwords")
 
 # T5:
 
-class T5FineTuner(pl.LightningModule):
-    def __init__(self, hparams):
-        super(T5FineTuner, self).__init__()
-        self.hparams = hparams
+# class T5FineTuner(pl.LightningModule):
+#     def __init__(self, hparams):
+#         super(T5FineTuner, self).__init__()
+#         self.hparams = hparams
 
-        self.model = T5ForConditionalGeneration.from_pretrained(
-            hparams.model_name_or_path)
-        self.tokenizer = T5Tokenizer.from_pretrained(
-            hparams.tokenizer_name_or_path)
+#         self.model = T5ForConditionalGeneration.from_pretrained(
+#             hparams.model_name_or_path)
+#         self.tokenizer = T5Tokenizer.from_pretrained(
+#             hparams.tokenizer_name_or_path)
 
-    def forward(
-        self, input_ids, attention_mask=None, decoder_input_ids=None, decoder_attention_mask=None, lm_labels=None
-    ):
-        return self.model(
-            input_ids,
-            attention_mask=attention_mask,
-            decoder_input_ids=decoder_input_ids,
-            decoder_attention_mask=decoder_attention_mask,
-            lm_labels=lm_labels,
-        )
+#     def forward(
+#         self, input_ids, attention_mask=None, decoder_input_ids=None, decoder_attention_mask=None, lm_labels=None
+#     ):
+#         return self.model(
+#             input_ids,
+#             attention_mask=attention_mask,
+#             decoder_input_ids=decoder_input_ids,
+#             decoder_attention_mask=decoder_attention_mask,
+#             lm_labels=lm_labels,
+#         )
 
 
-args_dict = dict(
-    model_name_or_path='t5-small',
-    tokenizer_name_or_path='t5-small',
-)
-args = argparse.Namespace(**args_dict)
+# args_dict = dict(
+#     model_name_or_path='t5-small',
+#     tokenizer_name_or_path='t5-small',
+# )
+# args = argparse.Namespace(**args_dict)
 
-# RoBERTa:
+# RoBERTa/Bert:
 
 
 @torch.jit.script
@@ -66,7 +66,7 @@ class Mish(nn.Module):
         return mish(input)
 
 
-class EmoClassificationModel(nn.Module):
+class ClassificationModel(nn.Module):
     def __init__(self, base_model, n_classes, base_model_output_size=768, dropout=0.05):
         super().__init__()
         self.base_model = base_model
@@ -111,7 +111,7 @@ label2int = dict(zip(labels, list(range(len(labels)))))
 
 # load emotion classifier (BERT)
 with torch.no_grad():
-    emo_model = EmoClassificationModel(BertModel.from_pretrained(
+    emo_model = ClassificationModel(BertModel.from_pretrained(
         "bert-base-uncased").base_model, len(labels))
     emo_model.load_state_dict(torch.load(
         'BERT_emotion_1ft.pt', map_location=torch.device('cpu')), strict=False)  # change path
@@ -125,7 +125,7 @@ with torch.no_grad():
 
 # load empathy classifier (BERT)
 with torch.no_grad():
-    emp_model = EmoClassificationModel(BertModel.from_pretrained(
+    emp_model = ClassificationModel(BertModel.from_pretrained(
         "bert-base-uncased").base_model, 2)
     emp_model.load_state_dict(torch.load(
         'BERT_empathy_1ft_1.pt', map_location=torch.device('cpu')), strict=False)  # change path
