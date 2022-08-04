@@ -185,6 +185,8 @@ stemmer = nltk.stem.PorterStemmer()
 #   label = int(top_class[0][0])
 #   label_map = {v: k for k, v in label2int.items()}
 #   return label_map[label]
+bert_tokenizer = BertTokenizer.from_pretrained("bert-base-uncased")
+
 
 def get_emotion(text):  # BERT
     '''
@@ -192,9 +194,7 @@ def get_emotion(text):  # BERT
     '''
     text = re.sub(r'[^\w\s]', '', text)
     text = text.lower()
-    t = BertTokenizer.from_pretrained("bert-base-uncased")
-    tokenizer = t
-    encoded = tokenizer.encode_plus(
+    encoded = bert_tokenizer.encode_plus(
         text,
         add_special_tokens=True,
         max_length=128,
@@ -205,8 +205,7 @@ def get_emotion(text):  # BERT
         return_tensors='pt',
     )
     sequence_padded = torch.tensor(encoded["input_ids"])
-    attention_mask_padded = torch.tensor(
-        encoded["attention_mask"])
+    attention_mask_padded = torch.tensor(encoded["attention_mask"])
     with torch.no_grad():
         output = emo_model((sequence_padded, attention_mask_padded))
     top_p, top_class = output.topk(1, dim=1)
@@ -220,10 +219,10 @@ def empathy_score(text):  # BERT
     '''
     Computes a discrete numerical empathy score for an utterance (scale 0 to 1)
     '''
-    tokenizer = BertTokenizer.from_pretrained("bert-base-uncased")
+
     # text = re.sub(r'[^\w\s]', '', text)
     # text = text.lower()
-    encoded = tokenizer.encode_plus(
+    encoded = bert_tokenizer.encode_plus(
         text,
         add_special_tokens=True,
         max_length=128,

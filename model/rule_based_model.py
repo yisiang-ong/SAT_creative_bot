@@ -40,12 +40,12 @@ class ModelDecisionMaker:
             "7: Maintaining a Loving Relationship with the Child",
             "8: Creating Zest for Life",
             "9: Enjoying Nature",
-            "10: Muscle Relaxation and Playful Face",
-            "11: Laughing on our own",
-            "12: Laughing with our Childhood self",
-            "13: Creating your own Brand of Laughter",
-            "14: Overcoming Current Negative Emotions",
-            "15: Overcoming Past Pain",
+            "10: Overcoming Current Negative Emotions",
+            "11: Overcoming Past Pain",
+            "12: Muscle Relaxation and Playful Face",
+            "13: Laughing on our own",
+            "14: Laughing with our Childhood self",
+            "15: Creating your own Brand of Laughter",
             "16: Learning to Change our Perspective",
             "17: Learning to be playful about our past",
             "18: Identifying our Personal resentments and Acting them out",
@@ -188,7 +188,7 @@ class ModelDecisionMaker:
             ],
             "endure-pain": [
                 "0: none",
-                "1: SAT protocol 15",
+                "1: SAT protocol 11",
                 "2: SAT protocol 17",
                 "3: learn to express your feelings",
             ],
@@ -558,14 +558,16 @@ class ModelDecisionMaker:
                 "model_prompt": lambda user_id, db_session, curr_session, app: self.get_model_prompt_ask_try_another_sat_protocol(user_id, app, db_session),
 
                 "choices": {
-                    "yes": lambda user_id, db_session, curr_session,
+                    "Yes": lambda user_id, db_session, curr_session,
                     app: self.determine_next_prompt_new_sat_protocol(
                         user_id, app),
-                    "no": "ending_prompt"
+                    "No (restart session)": "feel_like_doing",
+                    "No (end session)": "ending_prompt"
                 },
                 "protocols": {
-                    "yes": [],
-                    "no": [],
+                    "Yes": [],
+                    "No (restart session)": [],
+                    "No (end session)": [],
                 },
             },
 
@@ -606,7 +608,7 @@ class ModelDecisionMaker:
                 },
                 "protocols": {
                     "yes": [],
-                    "no": [self.PROTOCOL_TITLES[10], self.PROTOCOL_TITLES[11], self.PROTOCOL_TITLES[12], self.PROTOCOL_TITLES[13]],
+                    "no": [self.PROTOCOL_TITLES[12], self.PROTOCOL_TITLES[13], self.PROTOCOL_TITLES[14], self.PROTOCOL_TITLES[15]],
                 },
             },
 
@@ -1010,12 +1012,12 @@ class ModelDecisionMaker:
                 "model_prompt": lambda user_id, db_session, curr_session, app: self.get_model_prompt_suggest_dichotomy_exercise(user_id, app, db_session),
 
                 "choices": {
-                    "1: SAT protocol 15": "try_sat_protocol_dichotomy",
+                    "1: SAT protocol 11": "try_sat_protocol_dichotomy",
                     "2: SAT protocol 17": "try_sat_protocol_dichotomy",
                     "3: learn to express your feelings": "try_dichotomy_exercise"
                 },
                 "protocols": {
-                    "1: SAT protocol 15": [self.PROTOCOL_TITLES[15]],
+                    "1: SAT protocol 11": [self.PROTOCOL_TITLES[11]],
                     "2: SAT protocol 17": [self.PROTOCOL_TITLES[17]],
                     "3: learn to express your feelings": []
                 },
@@ -1075,12 +1077,14 @@ class ModelDecisionMaker:
                         user_id, app),
                     "No (other dichotomy route)": "choose_dichotomy",
                     "No (opposite pole)": "try_sat_protocol_16",
+                    "No (restart session)": "feel_like_doing",
                     "No (end session)": "ending_prompt"
                 },
                 "protocols": {
                     "Yes": [],
                     "No (other dichotomy route)": [],
                     "No (opposite pole)": [],
+                    "No (restart session)": [],
                     "No (end session)": []
                 },
             },
@@ -1093,12 +1097,14 @@ class ModelDecisionMaker:
                         user_id, app),
                     "No (other dichotomy route)": "choose_dichotomy",
                     "No (opposite pole)": "try_sat_protocol_16",
+                    "No (restart session)": "feel_like_doing",
                     "No (end session)": "ending_prompt"
                 },
                 "protocols": {
                     "Yes": [],
                     "No (other dichotomy route)": [],
                     "No (opposite pole)": [],
+                    "No (restart session)": [],
                     "No (end session)": []
                 },
             },
@@ -1115,12 +1121,14 @@ class ModelDecisionMaker:
                         user_id, app),
                     "No (other dichotomy route)": "choose_dichotomy",
                     "No (opposite pole)": "try_sat_protocol_16",
+                    "No (restart session)": "feel_like_doing",
                     "No (end session)": "ending_prompt"
                 },
                 "protocols": {
                     "Yes": [],
                     "No (other dichotomy route)": [],
                     "No (opposite pole)": [],
+                    "No (restart session)": [],
                     "No (end session)": []
                 },
             },
@@ -1146,12 +1154,14 @@ class ModelDecisionMaker:
                 "model_prompt": lambda user_id, db_session, curr_session, app: self.get_model_prompt_ask_like_other_enhance_creativity(user_id, app, db_session),
 
                 "choices": {
-                    "yes": "three_path_creativity",
-                    "no": "ending_prompt"
+                    "Yes": "three_path_creativity",
+                    "No (restart session)": "feel_like_doing",
+                    "No (end session)": "ending_prompt"
                 },
                 "protocols": {
-                    "yes": [],
-                    "no": []
+                    "Yes": [],
+                    "No (restart session)": [],
+                    "No (end session)": []
                 },
             },
 
@@ -1198,11 +1208,13 @@ class ModelDecisionMaker:
                 "choices": {
                     "Yes": "suggest_sublimate_energy",
                     "No (Other path to enhance creativity)": "three_path_creativity",
+                    "No (restart session)": "feel_like_doing",
                     "No (End session)": "ending_prompt"
                 },
                 "protocols": {
                     "Yes": [],
                     "No (Other path to enhance creativity)": [],
+                    "No (restart session)": [],
                     "No (End session)": []
                 },
             },
@@ -1395,7 +1407,7 @@ class ModelDecisionMaker:
         # return random.choice(column.dropna().sample(n=15).to_list()) #using random choice instead of machine learning
         maxscore = 0
         chosen = ''
-        for row in column.dropna().sample(n=4):  # was 25
+        for row in column.dropna().sample(n=5):  # was 25
             fitscore = get_sentence_score(row, prev_qs)
             if fitscore > maxscore:
                 maxscore = fitscore
@@ -1404,7 +1416,7 @@ class ModelDecisionMaker:
             return chosen
         else:
             # was 25
-            return random.choice(column.dropna().sample(n=4).to_list())
+            return random.choice(column.dropna().sample(n=5).to_list())
 
     # Split sentence according to ".?!"
     def split_sentence(self, sentence):
@@ -2549,6 +2561,8 @@ class ModelDecisionMaker:
                 and current_choice != "choose_dichotomy"
                 and current_choice != "suggest_sublimate_energy"
                 and current_choice != "ask_another_sublimation_exercise"
+                and current_choice != "ask_like_other_enhance_creativity"
+                and current_choice != "ask_try_another_sat_protocol"
             ):
                 user_choice = user_choice.lower()
 
