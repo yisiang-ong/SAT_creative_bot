@@ -367,5 +367,5 @@ def get_sentence_score(sentence, dataframe):
     empathy = empathy_score(sentence)
     fluency = fluency_score(sentence)
     novelty = novelty_score(sentence, dataframe)
-    score = 1.5*empathy + 0.75*fluency + 2*novelty
+    score = 1.5*empathy + fluency + 2*novelty
     return score

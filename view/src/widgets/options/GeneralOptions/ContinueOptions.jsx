@@ -4,7 +4,7 @@ import Options from "../Options/Options";
 const ContinueOptions = (props) => {
   const options = [
     {
-      name: "Continue",
+      name: "continue",
       handler: props.actionProvider.handleButtons,
       id: 4,
       userID: props.userState,

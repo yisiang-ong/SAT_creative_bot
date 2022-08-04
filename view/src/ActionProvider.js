@@ -118,7 +118,7 @@ class ActionProvider {
     //   optionsToShow = "YesNoProtocols"
     // } else if (userOptions.length === 2 && userOptions[0] === "recent" && userOptions[1] === "distant") {
     //   optionsToShow = "RecentDistant"
-    } else if (userOptions.length === 3 && userOptions[0] === "positive" && userOptions[1] === "neutral" && userOptions[2] === "negative") {
+    } else if (userOptions.length === 4 && userOptions[0] === "sad" && userOptions[1] === "angry" && userOptions[2] === "anxious" && userOptions[3] === "happy") {
       optionsToShow = "Emotion"
     // } else if (userOptions.length === 3 && userOptions[0] === "better" && userOptions[1] === "worse" && userOptions[2] === "no change") {
     //   optionsToShow = "Feedback"
@@ -172,13 +172,13 @@ class ActionProvider {
     this.addMessageToBotState(message);
 
 
-    // Ignores input type above and manually defines; other cases will need an if check for this
-    let input_type = ["positive", "neutral", "negative"]
+    // // Ignores input type above and manually defines; other cases will need an if check for this
+    // let input_type = ["sad", "angry", "anxious", "happy"]
     const dataToSend = {
       user_id: userID,
       session_id: sessionID,
       user_choice: inputToSend,
-      input_type: input_type,
+      input_type: userInputType,
     };
     this.sendRequest(dataToSend);
   }

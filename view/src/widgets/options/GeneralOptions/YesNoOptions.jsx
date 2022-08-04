@@ -4,7 +4,7 @@ import Options from "../Options/Options";
 const YesNoOptions = (props) => {
   const options = [
     {
-      name: "Yes",
+      name: "yes",
       handler: props.actionProvider.handleButtons,
       id: 1,
       userID: props.userState,
@@ -12,7 +12,7 @@ const YesNoOptions = (props) => {
       userInputType: "YesNo",
     },
     {
-      name: "No",
+      name: "no",
       handler: props.actionProvider.handleButtons,
       id: 2,
       userID: props.userState,

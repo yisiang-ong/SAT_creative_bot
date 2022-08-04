@@ -148,7 +148,7 @@ def create_app():
         input_type = user_info["input_type"]
         user_choice = user_info["user_choice"]
 
-        print(input_type)
+        # print(input_type)
         if type(input_type) == list and len(input_type) == 0:
             input_type = "any"
         elif type(input_type) == list and len(input_type) == 1:

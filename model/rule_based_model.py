@@ -2637,8 +2637,22 @@ class ModelDecisionMaker:
                 protocols_chosen = current_protocols[user_choice]
 
         else:
-            next_choice = current_choice_for_question["open_text"]
-            protocols_chosen = current_protocols["open_text"]
+            if current_choice == "check_emotion":
+                if user_choice == "sad":
+                    next_choice = current_choice_for_question["sad"]
+                    protocols_chosen = current_protocols["sad"]
+                elif user_choice == "angry":
+                    next_choice = current_choice_for_question["angry"]
+                    protocols_chosen = current_protocols["angry"]
+                elif user_choice == "anxious":
+                    next_choice = current_choice_for_question["anxious"]
+                    protocols_chosen = current_protocols["anxious"]
+                else:
+                    next_choice = current_choice_for_question["happy"]
+                    protocols_chosen = current_protocols["happy"]
+            else:
+                next_choice = current_choice_for_question["open_text"]
+                protocols_chosen = current_protocols["open_text"]
 
         if callable(next_choice):
             next_choice = next_choice(user_id, db_session, user_session, app)
