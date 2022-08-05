@@ -58,7 +58,7 @@ def create_app():
         password = user_info["password"]
         usernames = ["user" + str(i) for i in range(1, 31)]
         passwords = [
-            "user1",
+            "dfa07ed8fe",
             "l98zjxj6vc",
             "mq577o05wz",
             "tcty170i9o",
