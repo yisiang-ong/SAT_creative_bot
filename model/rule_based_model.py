@@ -33,7 +33,7 @@ class ModelDecisionMaker:
             "0: None",
             "1: Recalling Significant Memories",
             "2: Becoming Intimate with our Child",
-            "3: Singing a Song of Sffection",
+            "3: Singing a Song of Affection",
             "4: Expressing Love and Care for the Child",
             "5: Pledging to Care and Support our Child",
             "6: Restoring our Emotional World after our Pledge",
