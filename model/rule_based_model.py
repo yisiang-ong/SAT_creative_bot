@@ -1730,7 +1730,7 @@ class ModelDecisionMaker:
             self.recent_questions[user_id] = []
             self.recent_questions[user_id].append(question)
         # print(self.recent_questions[user_id])
-        return ["You have selected SAT Protocol " + str(self.current_protocol_ids[user_id][0]) + ". "] + self.split_sentence(question)
+        return ["You have selected SAT Protocol " + str(self.current_protocol_ids[user_id][0]) + ". ", "You can refer the protocol shown on the right."] + self.split_sentence(question)
 
     def get_model_prompt_ask_try_another_sat_protocol(self, user_id, app, db_session):
         prev_qs = pd.DataFrame(
@@ -1784,7 +1784,7 @@ class ModelDecisionMaker:
         else:
             self.recent_questions[user_id] = []
             self.recent_questions[user_id].append(question)
-        return self.split_sentence(question)
+        return self.split_sentence(question) + ["Please spend time to reflect about those memories."]
 
     def get_model_prompt_ask_project_childhood_feeling(self, user_id, app, db_session):
         prev_qs = pd.DataFrame(
@@ -1947,7 +1947,7 @@ class ModelDecisionMaker:
         else:
             self.recent_questions[user_id] = []
             self.recent_questions[user_id].append(question)
-        question = question.format("dichotomy")
+        question = question.format("dichotomies")
         return self.split_sentence(question)
 
     def get_model_prompt_choose_dichotomy(self, user_id, app, db_session):
@@ -2026,12 +2026,12 @@ class ModelDecisionMaker:
             self.recent_questions[user_id] = []
             self.recent_questions[user_id].append(question)
 
-        print(len(self.recent_questions[user_id]))
+        # print(len(self.recent_questions[user_id]))
         question = question.format("'" + str(self.pole_choice) + "'")
         # print(self.dichotomy_ids[user_id][1])
         # self.dichotomy_choice = [dichotomy_name[0], dichotomy_name[1]]
         # print(self.dichotomy_choice)
-        return self.split_sentence(question)
+        return self.split_sentence(question) + ["Please choose one to continue."]
 
     def get_model_prompt_trying_dichotomy_exercise(self, user_id, app, db_session):
 
@@ -2068,7 +2068,7 @@ class ModelDecisionMaker:
             self.recent_questions[user_id] = []
             self.recent_questions[user_id].append(question)
         # print(self.recent_questions[user_id])
-        return ["You have selected SAT Protocol " + str(sat_protocol) + ". "] + self.split_sentence(question)
+        return ["You have selected SAT Protocol " + str(sat_protocol) + ". ", "You can refer the protocol shown on the right."] + self.split_sentence(question)
 
     def get_model_prompt_found_useful(self, user_id, app, db_session):
         prev_qs = pd.DataFrame(
