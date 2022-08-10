@@ -29,7 +29,7 @@ const config = {
   },
   customComponents: {
     header: () => <div style={{height: '16px', fontFamily: 'Arial', borderTopLeftRadius: '5px', borderTopRightRadius: '5px',
-    background: '#EBECED', color: '#4A4A4A', padding: '8px', borderBottom: '1px solid #B8BABA'}}>SATbot</div>,
+    background: '#EBECED', color: '#4A4A4A', padding: '8px', borderBottom: '1px solid #B8BABA'}}>CreativeBot</div>,
     botAvatar: () => <div class="react-chatbot-kit-chat-bot-avatar-container" style={{fontFamily: 'Arial'}}><p class="react-chatbot-kit-chat-bot-avatar-letter">S</p></div>
   },
 
