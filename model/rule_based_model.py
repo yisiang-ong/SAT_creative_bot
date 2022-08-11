@@ -1496,7 +1496,7 @@ class ModelDecisionMaker:
         else:
             self.recent_questions[user_id] = []
             self.recent_questions[user_id].append(question)
-        return self.split_sentence(question)
+        return self.split_sentence(question) + ["Please have a look at SAT Introduction at your right before we continue."]
 
     def get_model_prompt_believe_creative_negative(self, user_id, app, db_session):
         prev_qs = pd.DataFrame(
@@ -1509,7 +1509,7 @@ class ModelDecisionMaker:
         else:
             self.recent_questions[user_id] = []
             self.recent_questions[user_id].append(question)
-        return self.split_sentence(question)
+        return self.split_sentence(question) + ["Please take a look at SAT Introduction at your right before we continue."]
 
     def get_model_prompt_ask_creative_domain(self, user_id, app, db_session):
         prev_qs = pd.DataFrame(
@@ -1784,7 +1784,8 @@ class ModelDecisionMaker:
         else:
             self.recent_questions[user_id] = []
             self.recent_questions[user_id].append(question)
-        return self.split_sentence(question) + ["Please spend time to reflect about those memories."]
+        return self.split_sentence(question) + ["Please spend time to reflect about those memories and have a read on SAT Introduction at your right to see how it helps on this pathway.",
+                                                "When you finished, please press continue."]
 
     def get_model_prompt_ask_project_childhood_feeling(self, user_id, app, db_session):
         prev_qs = pd.DataFrame(
