@@ -20,8 +20,8 @@ from torch import nn
 import torch.nn.functional as F
 import re
 import nltk
+import pandas as pd
 nltk.download("stopwords")
-from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
 
 
 # T5:
@@ -92,12 +92,17 @@ class ClassificationModel(nn.Module):
 
         return self.classifier(hidden_states[0][:, 0, :])
 
-# initialize bert tokenizer
-bert_tokenizer = BertTokenizer.from_pretrained("bert-base-uncased")
 
 # labels for emotion classification
 labels = ["sadness", "joy", "anger", "fear"]
 label2int = dict(zip(labels, list(range(len(labels)))))
+# initialize bert tokenizer
+bert_tokenizer = BertTokenizer.from_pretrained("bert-base-uncased")
+# simple tokenizer + stemmer
+regextokenizer = nltk.tokenize.RegexpTokenizer(r'\w+')
+stemmer = nltk.stem.PorterStemmer()
+# readcsv
+df = pd.read_csv("pre_compute_label.csv", encoding='UTF-8')
 
 
 # # load emotion classifier (T5)
@@ -118,38 +123,6 @@ with torch.no_grad():
         "bert-base-uncased").base_model, len(labels))
     emo_model.load_state_dict(torch.load(
         'BERT_emotion_1ft.pt', map_location=torch.device('cpu')), strict=False)  # change path
-
-
-# # load empathy classifier (T5)
-# with torch.no_grad():
-#     emp_model = T5FineTuner(args)
-#     emp_model.load_state_dict(torch.load(
-#         'T5_empathy_2ft_2.pt', map_location=torch.device('cpu')), strict=False)  # change path
-
-# #load empathy classifier (RoBERTa)
-# with torch.no_grad():
-#     emp_model = ClassificationModel(AutoModelWithLMHead.from_pretrained("roberta-base").base_model, 2)
-#     emp_model.load_state_dict(torch.load('RoBERTa_empathy_2ft_2.pt', map_location=torch.device('cpu')), strict=False) #change path
-
-# load empathy classifier (BERT)
-with torch.no_grad():
-    emp_model = ClassificationModel(BertModel.from_pretrained(
-        "bert-base-uncased").base_model, 2)
-    emp_model.load_state_dict(torch.load(
-        'BERT_empathy_1ft_1.pt', map_location=torch.device('cpu')), strict=False)  # change path
-
-
-# Load pre-trained GPT2 language model weights
-with torch.no_grad():
-    gptmodel = GPT2LMHeadModel.from_pretrained('gpt2')
-    gptmodel.eval()
-
-# Load pre-trained GPT2 tokenizer
-gpttokenizer = GPT2Tokenizer.from_pretrained('gpt2')
-
-# simple tokenizer + stemmer
-regextokenizer = nltk.tokenize.RegexpTokenizer(r'\w+')
-stemmer = nltk.stem.PorterStemmer()
 
 
 # def get_emotion(text): # T5
@@ -223,123 +196,6 @@ def get_emotion(text):  # BERT
     return label_map[label]
 
 
-def empathy_score(text):  # BERT
-    '''
-    Computes a discrete numerical empathy score for an utterance (scale 0 to 1)
-    '''
-
-    # text = re.sub(r'[^\w\s]', '', text)
-    # text = text.lower()
-    encoded = bert_tokenizer.encode_plus(
-        text,
-        add_special_tokens=True,
-        max_length=128,
-        return_token_type_ids=False,
-        padding="max_length",
-        truncation=True,
-        return_attention_mask=True,
-        return_tensors='pt',
-    )
-    sequence_padded = torch.tensor(encoded["input_ids"])
-    # print(sequence_padded)
-    attention_mask_padded = torch.tensor(
-        encoded["attention_mask"])
-    # print(attention_mask_padded)
-    with torch.no_grad():
-        output = emp_model((sequence_padded, attention_mask_padded))
-    top_p, top_class = output.topk(1, dim=1)
-    label = int(top_class[0][0])
-    return label
-
-# def empathy_score(text): (T5)
-#     '''
-#     Computes a discrete numerical empathy score for an utterance (scale 0 to 2)
-#     '''
-#     with torch.no_grad():
-#         input_ids = emp_model.tokenizer.encode(
-#             text + '</s>', return_tensors='pt')
-#         output = emp_model.model.generate(input_ids=input_ids, max_length=2)
-#         dec = [emp_model.tokenizer.decode(ids) for ids in output]
-#     label = dec[0]
-#     if label == 'weak':
-#         score = 0.0
-#     elif label == 'strong':
-#         score = 1.0
-#     # normalise between 0 and 1 dividing by the highest possible value:
-#     return score
-
-# def empathy_score(text):  # RoBERTa
-#     '''
-#     Computes a discrete numerical empathy score for an utterance (scale 0 to 1)
-#     '''
-
-#     # text = re.sub(r'[^\w\s]', '', text)
-#     # text = text.lower()
-#     t = ByteLevelBPETokenizer(
-#                 "NLP models/Empathy Classification/tokenizer/vocab.json", #change path
-#                 "NLP models/Empathy Classification/tokenizer/merges.txt"  #change path
-#             )
-#     t._tokenizer.post_processor = BertProcessing(
-#                 ("</s>", t.token_to_id("</s>")),
-#                 ("<s>", t.token_to_id("<s>")),
-#             )
-#     t.enable_truncation(512)
-#     t.enable_padding(pad_id=t.token_to_id("<pad>"))
-#     tokenizer = t
-#     encoded = tokenizer.encode(text)
-#     sequence_padded = torch.tensor(encoded.ids).unsqueeze(0)
-#     attention_mask_padded = torch.tensor(encoded.attention_mask).unsqueeze(0)
-#     with torch.no_grad():
-#         output = emp_model((sequence_padded, attention_mask_padded))
-#     top_p, top_class = output.topk(1, dim=1)
-#     label = int(top_class[0][0])
-#     return label
-
-def perplexity(sentence):
-    '''
-    Computes the PPL of an utterance using GPT2 LM
-    '''
-    tokenize_input = gpttokenizer.encode(sentence)
-    tensor_input = torch.tensor([tokenize_input])
-    with torch.no_grad():
-        loss = gptmodel(tensor_input, labels=tensor_input)[0]
-    return np.exp(loss.detach().numpy())
-
-
-def repetition_penalty(sentence):
-    '''
-    Adds a penalty for each repeated (stemmed) token in
-    an utterance. Returns the total penalty of the sentence
-    '''
-    word_list = regextokenizer.tokenize(sentence.lower())
-    filtered_words = [
-        word for word in word_list if word not in stopwords.words('english')]
-    stem_list = [stemmer.stem(word) for word in filtered_words]
-    penalty = 0
-    visited = []
-    for w in stem_list:
-        if w not in visited:
-            visited.append(w)
-        else:
-            penalty += 0.001
-    return penalty
-
-
-def fluency_score(sentence):
-    '''
-    Computes the fluency score of an utterance, given by the
-    inverse of the perplexity minus a penalty for repeated tokens
-    '''
-    ppl = perplexity(sentence)
-    penalty = repetition_penalty(sentence)
-    score = (1 / ppl) - penalty
-    # normalise by the highest possible fluency computed on the corpus:
-    normalised_score = score / 0.09
-    if normalised_score < 0:
-        normalised_score = 0
-    return round(normalised_score, 2)
-
-
 def get_distance(s1, s2):
     '''
     Computes a distance score between utterances calculated as the overlap
@@ -390,16 +246,6 @@ def novelty_score(sentence, dataframe):
         score = d_score / len(d_list)
     return round(score, 2)
 
-def sentiment_score(sentence):
-    """
-    Compute the sentiment score of the sentence. Scale (-1, 1).
-    and also normalized to scale of (0,1) by adding 1 and divide by 2. max(0.9836), min(-0.613)
-    """
-    analyzer = SentimentIntensityAnalyzer()
-    sent_score = analyzer.polarity_scores(sentence)
-    sent_score =  (sent_score["compound"] + 0.613)/ (0.9836+0.613)
-    return sent_score
-
     
     
 def get_sentence_score(sentence, dataframe):
@@ -407,9 +253,10 @@ def get_sentence_score(sentence, dataframe):
     Calculates how fit a sentence is based on its weighted empathy, fluency
     and novelty values
     '''
-    empathy = empathy_score(sentence)
-    fluency = fluency_score(sentence)
+    tmp_df = df[df["Response"]==sentence]
+    empathy = float(tmp_df.empathy_score)
+    fluency = float(tmp_df.fluency_score)
     novelty = novelty_score(sentence, dataframe)
-    sentiment = sentiment_score(sentence)
+    sentiment = float(tmp_df.sentiment_score)
     score = 1.5*empathy + fluency + 2*novelty +0.5*sentiment
     return score

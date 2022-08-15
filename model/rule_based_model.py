@@ -1,7 +1,8 @@
 import nltk
 
 from model.models import UserModelSession, Choice, UserModelRun, Protocol
-from model.classifiers import get_emotion, get_sentence_score
+# from model.classifiers import get_emotion, get_sentence_score
+from model.classifiers_pre_compute import get_emotion, get_sentence_score
 import pandas as pd
 import numpy as np
 import random
