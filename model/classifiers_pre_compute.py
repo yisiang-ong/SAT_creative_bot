@@ -254,9 +254,10 @@ def get_sentence_score(sentence, dataframe):
     and novelty values
     '''
     tmp_df = df[df["Response"]==sentence]
-    empathy = float(tmp_df.empathy_score)
+    tmp_df = tmp_df.iloc[0]
+    empathy = int(tmp_df.empathy_score)
     fluency = float(tmp_df.fluency_score)
     novelty = novelty_score(sentence, dataframe)
     sentiment = float(tmp_df.sentiment_score)
-    score = 1.5*empathy + fluency + 2*novelty +0.5*sentiment
+    score = empathy + 0.75*fluency + 2*novelty +0.3*sentiment
     return score
