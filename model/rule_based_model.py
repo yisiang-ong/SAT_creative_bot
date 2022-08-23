@@ -20,16 +20,12 @@ class ModelDecisionMaker:
 
         self.dataset = pd.read_csv(
             'flowchart.csv', encoding='UTF-8')  # change path
-        # self.robert = pd.read_csv('robert.csv', encoding='ISO-8859-1')
-        # self.gabrielle = pd.read_csv('gabrielle.csv', encoding='ISO-8859-1')
-        # self.arman = pd.read_csv('arman.csv', encoding='ISO-8859-1')
-        # self.olivia = pd.read_csv('olivia.csv', encoding='ISO-8859-1')
         self.dichotomy_datasets = pd.read_csv(
             'dichotomy_exercise.csv', encoding='UTF-8')
         self.sublimation_datasets = pd.read_csv(
             'sublimate_energy_exercise.csv', encoding='UTF-8')
 
-        # Titles from workshops (Title 7 adapted to give more information)
+        # TProtocol Titles
         self.PROTOCOL_TITLES = [
             "0: None",
             "1: Recalling Significant Memories",
@@ -238,8 +234,6 @@ class ModelDecisionMaker:
         # and current choice
         self.user_choices = {}
 
-        # Keys: user ids, values: scores for each question
-        # self.user_scores = {}
 
         # Keys: user ids, values: current suggested protocols
         self.suggestions = {}
@@ -275,26 +269,6 @@ class ModelDecisionMaker:
                 },
                 "protocols": {"open_text": []},
             },
-
-
-            # "choose_persona": {
-            #     "model_prompt": "Who would you like to talk to?",
-            #     "choices": {
-            #         "Kai": lambda user_id, db_session, curr_session, app: self.get_kai(user_id),
-            #         "Robert": lambda user_id, db_session, curr_session, app: self.get_robert(user_id),
-            #         "Gabrielle": lambda user_id, db_session, curr_session, app: self.get_gabrielle(user_id),
-            #         "Arman": lambda user_id, db_session, curr_session, app: self.get_arman(user_id),
-            #         "Olivia": lambda user_id, db_session, curr_session, app: self.get_olivia(user_id),
-            #     },
-            #     "protocols": {
-            #         "Kai": [],
-            #         "Robert": [],
-            #         "Gabrielle": [],
-            #         "Arman": [],
-            #         "Olivia": [],
-            #     },
-            # },
-
 
             "opening_prompt": {
                 "model_prompt": lambda user_id, db_session, curr_session, app: self.get_opening_prompt(user_id),
@@ -405,20 +379,6 @@ class ModelDecisionMaker:
                     "no": [self.PROTOCOL_TITLES[2], self.PROTOCOL_TITLES[4], self.PROTOCOL_TITLES[5], self.PROTOCOL_TITLES[6], self.PROTOCOL_TITLES[7], self.PROTOCOL_TITLES[20]],
                 },
             },
-
-            ############################# ALL EMOTIONS #############################
-
-            # "project_emotion": {
-            #     "model_prompt": lambda user_id, db_session, curr_session, app: self.get_model_prompt_project_emotion(user_id, app, db_session),
-
-            #     "choices": {
-            #         "Continue": "suggestions",
-            #     },
-            #     "protocols": {
-            #         "Continue": [],
-            #     },
-            # },
-
 
             "suggest_domain_protocols": {
                 "model_prompt": lambda user_id, db_session, curr_session, app: self.get_model_prompt_domain_suggestions(user_id, app, db_session),
@@ -1228,15 +1188,6 @@ class ModelDecisionMaker:
                 "choices": {"any": "opening_prompt"},
                 "protocols": {"any": []}
             },
-
-            # "restart_prompt": {
-            #     "model_prompt": lambda user_id, db_session, curr_session, app: self.get_restart_prompt(user_id),
-
-            #     "choices": {
-            #         "open_text": lambda user_id, db_session, curr_session, app: self.determine_next_prompt_opening(user_id, app, db_session)
-            #     },
-            #     "protocols": {"open_text": []},
-            # },
         }
         self.QUESTION_KEYS = list(self.QUESTIONS.keys())
 
@@ -1252,10 +1203,6 @@ class ModelDecisionMaker:
     def clear_datasets(self, user_id):
         self.datasets[user_id] = pd.DataFrame(columns=['sentences'])
 
-    # def initialise_remaining_choices(self, user_id):
-    #     self.remaining_choices[user_id] = ["displaying_antisocial_behaviour",
-    #                                        "internal_persecutor_saviour", "personal_crisis", "rigid_thought"]
-
     def save_name(self, user_id):
         try:
             user_response = self.user_choices[user_id]["choices_made"]["ask_name"]
@@ -1264,31 +1211,6 @@ class ModelDecisionMaker:
         self.users_names[user_id] = user_response
         self.datasets[user_id] = self.dataset
         return "opening_prompt"
-        # return "feel_like_doing"  # for testing purpose
-
-    # from all the lists of protocols collected at each step of the dialogue it puts together some and returns these as suggestions
-    # def get_suggestions(self, user_id, app):
-    #     suggestions = []
-    #     for curr_suggestions in list(self.suggestions[user_id]):
-    #         if len(curr_suggestions) > 2:
-    #             i, j = random.choices(range(0, len(curr_suggestions)), k=2)
-    #             # weeds out some gibberish that im not sure why it's there
-    #             if curr_suggestions[i] and curr_suggestions[j] in self.PROTOCOL_TITLES:
-    #                 suggestions.extend(
-    #                     [curr_suggestions[i], curr_suggestions[j]])
-    #         else:
-    #             suggestions.extend(curr_suggestions)
-    #         suggestions = set(suggestions)
-    #         suggestions = list(suggestions)
-    #     # augment the suggestions if less than 4, we add random ones avoiding repetitions
-    #     while len(suggestions) < 4:
-    #         # we dont want to suggest protocol 6 or 11 at random here
-    #         p = random.choice([i for i in range(1, 20) if i not in [6, 11]])
-    #         if (any(self.PROTOCOL_TITLES[p] not in curr_suggestions for curr_suggestions in list(self.suggestions[user_id]))
-    #                 and self.PROTOCOL_TITLES[p] not in self.recent_protocols and self.PROTOCOL_TITLES[p] not in suggestions):
-    #             suggestions.append(self.PROTOCOL_TITLES[p])
-    #             self.suggestions[user_id].extend([self.PROTOCOL_TITLES[p]])
-    #     return suggestions
 
     def get_suggestions(self, user_id, app):
         suggestions = []
@@ -1387,7 +1309,6 @@ class ModelDecisionMaker:
         user_response = self.user_choices[user_id]["choices_made"]["opening_prompt"]
         # (["happy", "sadness", "fear", "anger"])
         emotion = get_emotion(user_response)
-        # print(emotion)
         if emotion == 'fear':
             self.guess_emotion_predictions[user_id] = 'Anxious/Scared'
             self.user_emotions[user_id] = 'Anxious'
@@ -1400,15 +1321,12 @@ class ModelDecisionMaker:
         else:
             self.guess_emotion_predictions[user_id] = 'Happy/Content'
             self.user_emotions[user_id] = 'Happy'
-        # self.guess_emotion_predictions[user_id] = emotion
-        # self.user_emotions[user_id] = emotion
         return "guess_emotion"
 
     def get_best_sentence(self, column, prev_qs):
-        # return random.choice(column.dropna().sample(n=15).to_list()) #using random choice instead of machine learning
         maxscore = 0
         chosen = ''
-        for row in column.dropna().sample(n=5):  # was 25
+        for row in column.dropna().sample(n=5):
             fitscore = get_sentence_score(row, prev_qs)
             if fitscore > maxscore:
                 maxscore = fitscore
@@ -1416,7 +1334,6 @@ class ModelDecisionMaker:
         if chosen != '':
             return chosen
         else:
-            # was 25
             return random.choice(column.dropna().sample(n=5).to_list())
 
     # Split sentence according to ".?!"
@@ -1977,15 +1894,12 @@ class ModelDecisionMaker:
         else:
             self.recent_questions[user_id] = []
             self.recent_questions[user_id].append(question)
-        # print(self.recent_questions[user_id])
-        # print(self.dichotomy_ids[user_id][1])
         dichotomy_name = self.dichotomy_ids[user_id][1].split(" ")
         dichotomy_name.pop(0)
         dichotomy = " ".join(dichotomy_name)
         # remove "and" to record choices
         dichotomy_name.remove("and")
         self.dichotomy_choice = [dichotomy_name[0], dichotomy_name[1]]
-        # print(self.dichotomy_choice)
         question = question.format("'" + str(dichotomy) + "'")
         return self.split_sentence(question)
 
@@ -2000,10 +1914,6 @@ class ModelDecisionMaker:
         else:
             self.recent_questions[user_id] = []
             self.recent_questions[user_id].append(question)
-        # print(self.recent_questions[user_id])
-        # print(self.dichotomy_ids[user_id][1])
-        # self.dichotomy_choice = [dichotomy_name[0], dichotomy_name[1]]
-        # print(self.dichotomy_choice)
         return self.split_sentence(question) + ["(Dichotomy A: {} or Dichotomy B: {})".format("'"+str(self.dichotomy_choice[0])+"'", "'"+str(self.dichotomy_choice[1])+"'")]
 
     def get_dichotomy_a(self, user_id):
@@ -2027,12 +1937,7 @@ class ModelDecisionMaker:
         else:
             self.recent_questions[user_id] = []
             self.recent_questions[user_id].append(question)
-
-        # print(len(self.recent_questions[user_id]))
         question = question.format("'" + str(self.pole_choice) + "'")
-        # print(self.dichotomy_ids[user_id][1])
-        # self.dichotomy_choice = [dichotomy_name[0], dichotomy_name[1]]
-        # print(self.dichotomy_choice)
         return self.split_sentence(question) + ["Please choose one to continue."]
 
     def get_model_prompt_trying_dichotomy_exercise(self, user_id, app, db_session):
@@ -2044,10 +1949,6 @@ class ModelDecisionMaker:
         data = self.dichotomy_datasets
         column = self.DICHOTOMY_TO_EXERCISE[cur_pole_choice][cur_exercise_choice]
         question = data[column][0]
-        # question = "Please try to go through this exercise now {}. When you finish, press 'continue'".format(
-        #     self.DICHOTOMY_TO_EXERCISE[cur_pole_choice][cur_exercise_choice])
-        # print(
-        #     self.DICHOTOMY_TO_EXERCISE[cur_pole_choice][cur_exercise_choice])
         if len(self.recent_questions[user_id]) < 50:
             self.recent_questions[user_id].append(question)
         else:
@@ -2058,10 +1959,8 @@ class ModelDecisionMaker:
 
     def get_model_prompt_trying_sat_protocol_dichotomy(self, user_id, app, db_session):
         # if try sat protocol then use back self.dichotomu_exercise_id
-        # print(self.suggestions[user_id][0][0])
         suggested_choice = self.suggestions[user_id][0][0]
         sat_protocol = self.TITLE_TO_PROTOCOL[suggested_choice]
-        # cur_pole_choice = self.dichotomy_exercise_id[user_id][1]
         question = "Please try to go through this protocol to nurture {} trait now.\
              When you finish, press 'continue'.".format("'"+str(self.pole_choice)+"'")
         if len(self.recent_questions[user_id]) < 50:
@@ -2069,7 +1968,6 @@ class ModelDecisionMaker:
         else:
             self.recent_questions[user_id] = []
             self.recent_questions[user_id].append(question)
-        # print(self.recent_questions[user_id])
         return ["You have selected SAT Protocol " + str(sat_protocol) + ". ", "You can refer the protocol shown on the right."] + self.split_sentence(question)
 
     def get_model_prompt_found_useful(self, user_id, app, db_session):
@@ -2215,24 +2113,14 @@ class ModelDecisionMaker:
         else:
             self.recent_questions[user_id] = []
             self.recent_questions[user_id].append(question)
-        # print(self.recent_questions[user_id])
-        # print(self.dichotomy_ids[user_id][1])
-        # self.dichotomy_choice = [dichotomy_name[0], dichotomy_name[1]]
-        # print(self.dichotomy_choice)
         return self.split_sentence(question)
 
     def get_model_prompt_trying_sublimation_exercise(self, user_id, app, db_session):
         # integer of choice in the list
         cur_exercise_choice = self.sublimation_exercise_id[user_id][0]
-        # print(cur_exercise_choice)
         data = self.sublimation_datasets
         column = self.SUBLIMATION_EXERCISE[cur_exercise_choice]
-        # print(column)
         question = data[column][0]
-        # question = "Please try to go through this exercise now {}. When you finish, press 'continue'".format(
-        #     self.DICHOTOMY_TO_EXERCISE[cur_pole_choice][cur_exercise_choice])
-        # print(
-        #     self.DICHOTOMY_TO_EXERCISE[cur_pole_choice][cur_exercise_choice])
         if len(self.recent_questions[user_id]) < 50:
             self.recent_questions[user_id].append(question)
         else:
@@ -2252,10 +2140,6 @@ class ModelDecisionMaker:
         else:
             self.recent_questions[user_id] = []
             self.recent_questions[user_id].append(question)
-        # print(self.recent_questions[user_id])
-        # print(self.dichotomy_ids[user_id][1])
-        # self.dichotomy_choice = [dichotomy_name[0], dichotomy_name[1]]
-        # print(self.dichotomy_choice)
         return self.split_sentence(question)
 
     def get_model_prompt_ask_another_sublimation_exercise(self, user_id, app, db_session):
@@ -2269,10 +2153,6 @@ class ModelDecisionMaker:
         else:
             self.recent_questions[user_id] = []
             self.recent_questions[user_id].append(question)
-        # print(self.recent_questions[user_id])
-        # print(self.dichotomy_ids[user_id][1])
-        # self.dichotomy_choice = [dichotomy_name[0], dichotomy_name[1]]
-        # print(self.dichotomy_choice)
         return self.split_sentence(question)
 
     def get_model_prompt_ending(self, user_id, app, db_session):
@@ -2547,14 +2427,10 @@ class ModelDecisionMaker:
                 current_choice != "suggestions"
                 and current_choice != "check_emotion"
                 and current_choice != "after_classification_positive"
-                # and current_choice != "event_is_recent"
-                # and current_choice != "more_questions"
                 and current_choice != "user_found_useful"
                 and current_choice != "feel_better"
                 and current_choice != "feel_worse"
                 and current_choice != "feel_same"
-                # and current_choice != "choose_persona"
-                # and current_choice != "project_emotion"
                 and current_choice != "after_classification_negative"
                 and current_choice != "suggest_domain_protocols"
                 and current_choice != "suggest_sat_protocols"
@@ -2689,7 +2565,6 @@ class ModelDecisionMaker:
                 next_choice = next_choice["anxious"]
             else:
                 next_choice = next_choice["happy"]
-            # print(next_choice)
 
         if callable(protocols_chosen):
             protocols_chosen = protocols_chosen(

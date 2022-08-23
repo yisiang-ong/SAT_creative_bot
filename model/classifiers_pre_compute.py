@@ -22,6 +22,7 @@ import re
 import nltk
 import pandas as pd
 nltk.download("stopwords")
+import math
 
 
 # T5:
@@ -46,13 +47,6 @@ nltk.download("stopwords")
 #             decoder_attention_mask=decoder_attention_mask,
 #             lm_labels=lm_labels,
 #         )
-
-
-# args_dict = dict(
-#     model_name_or_path='t5-small',
-#     tokenizer_name_or_path='t5-small',
-# )
-# args = argparse.Namespace(**args_dict)
 
 # RoBERTa/Bert:
 
@@ -111,18 +105,17 @@ df = pd.read_csv("pre_compute_label.csv", encoding='UTF-8')
 #     emo_model.load_state_dict(torch.load(
 #         'T5_emotion_2ft_2.pt', map_location=torch.device('cpu')), strict=False)
 
-
 # #load emotion classifier (RoBERTa)
-# with torch.no_grad():
-#     emo_model = ClassificationModel(AutoModelWithLMHead.from_pretrained("roberta-base").base_model, len(labels))
-#     emo_model.load_state_dict(torch.load('RoBERTa_emotion_2ft_2.pt', map_location=torch.device('cpu')), strict=False) #change path
-
-# load emotion classifier (BERT)
 with torch.no_grad():
-    emo_model = ClassificationModel(BertModel.from_pretrained(
-        "bert-base-uncased").base_model, len(labels))
-    emo_model.load_state_dict(torch.load(
-        'BERT_emotion_1ft.pt', map_location=torch.device('cpu')), strict=False)  # change path
+    emo_model = ClassificationModel(AutoModelWithLMHead.from_pretrained("roberta-base").base_model, len(labels))
+    emo_model.load_state_dict(torch.load('RoBERTa_emotion_2ft_2.pt', map_location=torch.device('cpu')), strict=False) #change path
+
+# # load emotion classifier (BERT)
+# with torch.no_grad():
+#     emo_model = ClassificationModel(BertModel.from_pretrained(
+#         "bert-base-uncased").base_model, len(labels))
+#     emo_model.load_state_dict(torch.load(
+#         'BERT_emotion_1ft.pt', map_location=torch.device('cpu')), strict=False)  # change path
 
 
 # def get_emotion(text): # T5
@@ -140,60 +133,59 @@ with torch.no_grad():
 #     label = dec[0]
 #     return label
 
-# def get_emotion(text): # roberta
-#   '''
-#   Classifies and returns the underlying emotion of a text string
-#   '''
-#   text = re.sub(r'[^\w\s]', '', text)
-#   text = text.lower()
-#   t = ByteLevelBPETokenizer(
-#             "tokenizer/vocab.json", #change path
-#             "tokenizer/merges.txt"  #change path
-#         )
-#   t._tokenizer.post_processor = BertProcessing(
-#             ("</s>", t.token_to_id("</s>")),
-#             ("<s>", t.token_to_id("<s>")),
-#         )
-#   t.enable_truncation(512)
-#   t.enable_padding(pad_id=t.token_to_id("<pad>"))
-#   tokenizer = t
-#   encoded = tokenizer.encode(text)
-#   sequence_padded = torch.tensor(encoded.ids).unsqueeze(0)
-#   attention_mask_padded = torch.tensor(encoded.attention_mask).unsqueeze(0)
-#   with torch.no_grad():
-#       output = emo_model((sequence_padded, attention_mask_padded))
-#   top_p, top_class = output.topk(1, dim=1)
-#   label = int(top_class[0][0])
-#   label_map = {v: k for k, v in label2int.items()}
-#   return label_map[label]
+def get_emotion(text): # roberta
+  '''
+  Classifies and returns the underlying emotion of a text string
+  '''
+  text = re.sub(r'[^\w\s]', '', text)
+  text = text.lower()
+  t = ByteLevelBPETokenizer(
+            "tokenizer/vocab.json", #change path
+            "tokenizer/merges.txt"  #change path
+        )
+  t._tokenizer.post_processor = BertProcessing(
+            ("</s>", t.token_to_id("</s>")),
+            ("<s>", t.token_to_id("<s>")),
+        )
+  t.enable_truncation(512)
+  t.enable_padding(pad_id=t.token_to_id("<pad>"))
+  tokenizer = t
+  encoded = tokenizer.encode(text)
+  sequence_padded = torch.tensor(encoded.ids).unsqueeze(0)
+  attention_mask_padded = torch.tensor(encoded.attention_mask).unsqueeze(0)
+  with torch.no_grad():
+      output = emo_model((sequence_padded, attention_mask_padded))
+  top_p, top_class = output.topk(1, dim=1)
+  label = int(top_class[0][0])
+  label_map = {v: k for k, v in label2int.items()}
+  return label_map[label]
 
 
 
-def get_emotion(text):  # BERT
-    '''
-    Classifies and returns the underlying emotion of a text string
-    '''
-    text = re.sub(r'[^\w\s]', '', text)
-    text = text.lower()
-    encoded = bert_tokenizer.encode_plus(
-        text,
-        add_special_tokens=True,
-        max_length=128,
-        return_token_type_ids=False,
-        padding="max_length",
-        truncation=True,
-        return_attention_mask=True,
-        return_tensors='pt',
-    )
-    sequence_padded = torch.tensor(encoded["input_ids"])
-    attention_mask_padded = torch.tensor(encoded["attention_mask"])
-    with torch.no_grad():
-        output = emo_model((sequence_padded, attention_mask_padded))
-    top_p, top_class = output.topk(1, dim=1)
-    label = int(top_class[0][0])
-    # print(label)
-    label_map = {v: k for k, v in label2int.items()}
-    return label_map[label]
+# def get_emotion(text):  # BERT
+#     '''
+#     Classifies and returns the underlying emotion of a text string
+#     '''
+#     text = re.sub(r'[^\w\s]', '', text)
+#     text = text.lower()
+#     encoded = bert_tokenizer.encode_plus(
+#         text,
+#         add_special_tokens=True,
+#         max_length=128,
+#         return_token_type_ids=False,
+#         padding="max_length",
+#         truncation=True,
+#         return_attention_mask=True,
+#         return_tensors='pt',
+#     )
+#     sequence_padded = torch.tensor(encoded["input_ids"])
+#     attention_mask_padded = torch.tensor(encoded["attention_mask"])
+#     with torch.no_grad():
+#         output = emo_model((sequence_padded, attention_mask_padded))
+#     top_p, top_class = output.topk(1, dim=1)
+#     label = int(top_class[0][0])
+#     label_map = {v: k for k, v in label2int.items()}
+#     return label_map[label]
 
 
 def get_distance(s1, s2):
@@ -253,11 +245,12 @@ def get_sentence_score(sentence, dataframe):
     Calculates how fit a sentence is based on its weighted empathy, fluency
     and novelty values
     '''
+    
     tmp_df = df[df["Response"]==sentence]
     tmp_df = tmp_df.iloc[0]
-    empathy = int(tmp_df.empathy_score)
-    fluency = float(tmp_df.fluency_score)
+    empathy = int(tmp_df.empathy_score) 
+    fluency =  (math.log(float(tmp_df.fluency_score)) + 5)/5
     novelty = novelty_score(sentence, dataframe)
-    sentiment = float(tmp_df.sentiment_score)
-    score = empathy + 0.75*fluency + 2*novelty +0.3*sentiment
+    sentiment = (math.log(1- float(tmp_df.sentiment_score) +0.00001) +6)/6 if (math.log(1- float(tmp_df.sentiment_score) +0.00001) +6)/6 >0 else 0
+    score = 1.5*empathy + fluency + 1.5*novelty + 0.75*sentiment
     return score
